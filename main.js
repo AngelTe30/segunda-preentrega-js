@@ -1,6 +1,6 @@
 let totalCarrito = 0;
 let carrito = [];  // Aquí almacenaremos los productos agregados
-const productos = [
+const listaproductos = [
     {
         id: 1,
         imagen:"./images/auriculares.jpg",
@@ -38,127 +38,81 @@ const productos = [
     },
 ];
 
-let nombre = '';
-let compra = '';
-alert('Bienvenido a nuestra tienda online');
-
-
-while (!nombre) {
-    nombre = prompt("Nombre del cliente");
-
-    if (nombre) {
-        alert('Muchas gracias por elegirnos ' + nombre + '!');
-    } else {
-        alert('No has ingresado tu nombre, inténtalo de nuevo');
-    }
-}
-
-
-function mostrarProductos() {
-    let lista = 'Productos disponibles:\n';
-    productos.forEach(producto => {
-        lista += `${producto.id}. ${producto.nombre} - $${producto.precio} (Stock: ${producto.stock})\n`;
-    });
-    lista += '0. Finalizar compra\n';
-    return lista;
-}
-
-
-function agregarAlCarrito(idProducto) {
-    const producto = productos.find(p => p.id === idProducto);
-    if (producto && producto.stock > 0) {
-        carrito.push(producto);
-        totalCarrito += producto.precio;
-        producto.stock--;  // Reducimos el stock del producto
-        alert(`${producto.nombre} ha sido agregado al carrito. Total actual: $${totalCarrito}`);
-    } else {
-        alert('Producto no disponible o fuera de stock.');
-    }
-}
-
-// Función para eliminar un producto del carrito
-function eliminarDelCarrito(idProducto) {
-    const productoIndex = carrito.findIndex(p => p.id === idProducto);
-    if (productoIndex !== -1) {
-        const producto = carrito[productoIndex];
-        totalCarrito -= producto.precio;
-        carrito.splice(productoIndex, 1);
-        producto.stock++;  
-        alert(`${producto.nombre} ha sido eliminado del carrito. Total actual: $${totalCarrito}`);
-    } else {
-        alert('Producto no encontrado en el carrito.');
-    }
-}
-
-
-function mostrarCarrito() {
-    if (carrito.length === 0) {
-        alert('El carrito está vacío.');
-        return;
-    }
-    let detalleCarrito = 'Carrito de compras:\n';
-    carrito.forEach((producto, index) => {
-        detalleCarrito += `${index + 1}. ${producto.nombre} - $${producto.precio}\n`;
-    });
-    detalleCarrito += `Total: $${totalCarrito}\n`;
-    alert(detalleCarrito);
-}
-
-
-function finalizarCompra() {
-    if (carrito.length === 0) {
-        alert('No tienes productos en el carrito.');
-    } else {
-        alert(`Gracias por tu compra, ${nombre}! El total es: $${totalCarrito}`);
-        carrito = [];
-        totalCarrito = 0;
-    }
-}
-
-
-let continuarComprando = true;
-
-while (continuarComprando) {
-    let listaProductos = mostrarProductos();
-    let seleccion = parseInt(prompt(listaProductos));
-
-    if (seleccion === 0) {
-        continuarComprando = false;
-        finalizarCompra();
-    } else if (seleccion > 0 && seleccion <= productos.length) {
-        agregarAlCarrito(seleccion);
-        mostrarCarrito(); 
-    } else {
-        alert('Opción no válida. Inténtalo de nuevo.');
-    }
-}
-
-
-
-function catalogo(){
-    productos.forEach(producto =>{
-        const div= document.createElement("article");
-        article.classList.add("producto");
-        article.innerHTML = `
-            <article id="producto" class="card">
+    function mostrarProductos() {
+        const contenedorProductos = document.querySelector('.productos');
+        listaproductos.forEach(producto => {
+            const productoCard = document.createElement('article');
+            productoCard.classList.add('card');
+            
+            productoCard.innerHTML = `
                 <div class="image">
-                    <img src="./images/auriculares.jpg" alt="auriculares">
+                    <img src="${producto.imagen}" alt="${producto.nombre}">
                 </div>
-                <p class="name-product">Auriculares</p>
-
+                <p class="name-product">${producto.nombre}</p>
                 <div class="price">
                     <i class="fa-solid fa-dollar-sign"></i>
-                    <p id="price-product">800</p>
+                    <p id="price-product">${producto.precio}</p>
                 </div>
-                
                 <div id="contador" class="contador-producto">
-                    <button id="minus-button"><i class="fa-solid fa-minus"></i></button>
-                    <div id="" class="cart-control"><p id="add-product">0</p></div>
-                    <button id="plus-button"><i class="fa-regular fa-plus"></i></button>
+                    <button id="minus-button" onclick="modificarCantidad(${producto.id}, -1)">
+                        <i class="fa-solid fa-minus"></i>
+                    </button>
+                    <div class="cart-control">
+                        <p id="add-product-${producto.id}">0</p>
+                    </div>
+                    <button id="plus-button" onclick="modificarCantidad(${producto.id}, 1)">
+                        <i class="fa-regular fa-plus"></i>
+                    </button>
                 </div>
                 <div id="add" class="add-button">
-                    <button>Add cart</button>
+                    <button onclick="agregarAlCarrito(${producto.id})">Add cart</button>
                 </div>
-            </article>`
-    })
+            `;
+            
+            contenedorProductos.appendChild(productoCard);
+    });
+
+document.querySelectorAll('.plus-button').forEach(button => {
+    button.addEventListener('click', () => actualizarCantidad(button.dataset.id, 1));
+});
+
+document.querySelectorAll('.minus-button').forEach(button => {
+    button.addEventListener('click', () => actualizarCantidad(button.dataset.id, -1));
+});
+
+document.querySelectorAll('.add-to-cart').forEach(button => {
+    button.addEventListener('click', () => agregarAlCarrito(button.dataset.id));
+});
 }
+
+function actualizarCantidad(id, cantidad) {
+const cantidadElemento = document.querySelector(`.cantidad[data-id="${id}"]`);
+let cantidadActual = parseInt(cantidadElemento.textContent);
+cantidadActual = Math.max(0, cantidadActual + cantidad); // Evitar valores negativos
+cantidadElemento.textContent = cantidadActual;
+}
+
+function agregarAlCarrito(id) {
+const cantidadElemento = document.querySelector(`.cantidad[data-id="${id}"]`);
+const cantidad = parseInt(cantidadElemento.textContent);
+if (cantidad > 0) {
+    if (carrito[id]) {
+        carrito[id] += cantidad;
+    } else {
+        carrito[id] = cantidad;
+    }
+    actualizarContadorCarrito();
+    cantidadElemento.textContent = 0; // Reiniciar la cantidad en el contador
+} else {
+    alert("Seleccione al menos una cantidad antes de agregar al carrito.");
+}
+}
+
+function actualizarContadorCarrito() {
+const totalProductos = Object.values(carrito).reduce((total, cantidad) => total + cantidad, 0);
+document.getElementById('count-cart').textContent = totalProductos;
+}
+
+
+
+mostrarProductos();
